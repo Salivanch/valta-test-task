@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend/:/app
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - DB_ENGINE=${DJANGO_DB_ENGINE}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DJANGO_DB_HOST}
+      - DB_PORT=${DJANGO_DB_PORT}
+      - BACKEND_PORT=${BACKEND_PORT}
+      - DEBUG=${DEBUG}
+      - SECRET_KEY=${DJANGO_SECRET_KEY}
+      - ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+  nginx:
+    image: nginx:1.17
+    container_name: ngx
+    ports:
+      - ${NGINX_PORT}:${NGINX_PORT}
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+volumes:
+  backend:
+  postgres_data:
+  nginx:
